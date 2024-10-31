@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
+use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use tidy;
 
 class TaskController extends Controller
 {
@@ -23,7 +26,15 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request)
     {
-        return Task::create($request->validated());
+        $data = $request->all();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->storeAs('images/tasks', time() . '_' . $request->file('image')->getClientOriginalName(), 'public');
+        }
+
+        $task = Task::create($data);
+
+        return response()->json(['message' => 'successfully']);
     }
 
     /**
@@ -37,12 +48,23 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(TaskRequest $request, $id)
     {
         $task = Task::findOrFail($id);
-        $task->update($request->all());
+        $data = $request->validated();
 
-        dd($request->all());
+        if ($request->hasFile('image')) {
+
+            if ($task->image) {
+                Storage::disk('public')->delete($task->image);
+            }
+
+            $data['image'] = $request->file('image')->storeAs('images/tasks', time() . '_' . $request->file('image')->getClientOriginalName(), 'public');
+        }
+
+        $task->update($data);
+
+        return response()->json(['message' => 'success update data']);
     }
 
     /**
