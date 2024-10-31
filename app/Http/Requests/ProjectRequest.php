@@ -23,7 +23,8 @@ class ProjectRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'description' => 'required|max:255'
+            'description' => 'required|max:255',
+            'image' => 'nullable|image|mimes:jpg,png,jpeg|max:2048',
         ];
     }
 

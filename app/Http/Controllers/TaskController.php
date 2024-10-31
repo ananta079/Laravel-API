@@ -37,10 +37,12 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(TaskRequest $request, $id)
+    public function update(Request $request, $id)
     {
         $task = Task::findOrFail($id);
-        $task->update($request->validated());
+        $task->update($request->all());
+
+        dd($request->all());
     }
 
     /**

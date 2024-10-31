@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProjectRequest;
-use App\Http\Resources\ProjectResource;
+use Log;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use App\Http\Requests\ProjectRequest;
+use App\Http\Resources\ProjectResource;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
@@ -24,7 +26,17 @@ class ProjectController extends Controller
      */
     public function store(ProjectRequest $request)
     {
-        return Project::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->storeAs('images/projects', time() . '_' . $request->file('image')->getClientOriginalName(), 'public');
+        }
+
+        // dd($data);
+
+        $project = Project::create($data);
+
+        return new ProjectResource($project);
     }
 
     /**
@@ -41,8 +53,24 @@ class ProjectController extends Controller
     public function update(ProjectRequest $request, $id)
     {
         $project = Project::findOrFail($id);
-        $project->update($request->validated());
+        $data = $request->validated();
+
+        // cek apakah ada inputan file
+        if ($request->hasFile('image')) {
+            // hapus gambar lama
+            if ($project->image) {
+                Storage::disk('public')->delete($project->image);
+            }
+
+            // simpan gambar baru
+            $data['image'] = $request->file('image')->storeAs('images/projects', time() . '_' . $request->file('image')->getClientOriginalName(), 'public');
+        }
+
+        $project->update($data);
+
+        dd($request->all());
     }
+
 
     /**
      * Remove the specified resource from storage.
